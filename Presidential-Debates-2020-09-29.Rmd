@@ -2,46 +2,53 @@
 title: "COVID-19 Presidential Debates (1)"
 author: "David Jackson"
 date: "9/29/2020"
-output: html_document
+output: 
+  html_document: 
+    fig_width: 9
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,message = FALSE,warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE,message = FALSE,warning = FALSE)
 library(ggplot2)
 library(scales)
-theme_set(theme_linedraw())
+library(plotly)
+theme_set(theme_linedraw() + theme(panel.grid = element_line(linetype = 'dashed')))
+
 ```
 
 ```{r}
 df <- read.csv("./COVID-19.csv")
 df$Ymd <- as.Date(df$Ymd,format="%m-%d-%Y")
 df <- df[order(df$Ymd,decreasing = TRUE),]
-str(df)
 US <- subset(df,geoId =="US")
-str(US)
 no_us <- subset(df,geoId !="US")
-str(no_us)
 ```
 ```{r}
 worldCases <- aggregate(cases~Ymd,df,FUN=sum)
 worldDeaths <- aggregate(deaths~Ymd,df,FUN=sum)
 worldCases$cumCases <- cumsum(worldCases$cases)
 worldDeaths$cumdeaths <- cumsum(worldDeaths$deaths)
-
+```
+```{r}
 no_Cases <- aggregate(cases~Ymd,no_us,FUN=sum)
 no_Deaths <- aggregate(deaths~Ymd,no_us,FUN=sum)
+
+no_Cases$cumCases <- cumsum(no_Cases$cases)
+no_Deaths$cumdeaths <- cumsum(no_Deaths$deaths)
 
 ```
 
 ### Plot of Cumulative COID-19 Cases and Deaths for the World
 
 ```{r}
-ggplot(worldCases,aes(x=Ymd,y=cumCases)) +
-  geom_line(col="red")  +
+ggplot(worldCases) +
+  geom_line(aes(x=Ymd,y=cumCases,col="World"))  +
+  geom_line(data=no_Cases,aes(x=Ymd,y=cumCases,col="NO US")) +
   labs(title="World (incuding US) Cumulative Covid19 Cases")
 
-ggplot(worldDeaths,aes(x=Ymd,y=cumdeaths)) +
-  geom_line(col="red")  +
+ggplot(worldDeaths) +
+  geom_line(aes(x=Ymd,y=cumdeaths,col="World"))  +
+  geom_line(data=no_Deaths,aes(x=Ymd,y=cumdeaths,col="NO US")) +
   labs(title="World (incuding US) Cumulative Covid19 Deaths")
 ```
 
@@ -85,6 +92,10 @@ ggplot() + geom_line(data=worldDeaths,aes(x=Ymd,y=deaths,col="World")) +
   labs(title="Comparing World Deaths with and Without the US")
 ```
 
+
+
+
+
 ### Plot of Daily COID-19 Cases and Deaths for the US
 
 ```{r}
@@ -98,4 +109,14 @@ ggplot(US,aes(x=Ymd,y=deaths)) +
   labs(title="US Daily Covid19 Deaths") +
   geom_smooth(aes(x=Ymd,y=deaths),span=0.25) 
 ```
+```{r}
+ggplot() + geom_smooth(data=worldCases,aes(x=Ymd,y=cases,col="World")) +
+  geom_smooth(data=no_Cases,aes(x=Ymd,y=cases,col="NO US")) + 
+  labs(title="Comparing Lowss/Loess World Cases with and Without the US")
+
+ggplot() + geom_smooth(data=worldDeaths,aes(x=Ymd,y=deaths,col="World")) +
+  geom_smooth(data=no_Deaths,aes(x=Ymd,y=deaths,col="NO US")) + 
+  labs(title="Comparing Lowss/Loess World Deaths with and Without the US")
+```
+
  
