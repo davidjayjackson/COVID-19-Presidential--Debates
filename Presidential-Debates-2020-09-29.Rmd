@@ -1,0 +1,101 @@
+---
+title: "COVID-19 Presidential Debates (1)"
+author: "David Jackson"
+date: "9/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = FALSE,warning = FALSE)
+library(ggplot2)
+library(scales)
+theme_set(theme_linedraw())
+```
+
+```{r}
+df <- read.csv("./COVID-19.csv")
+df$Ymd <- as.Date(df$Ymd,format="%m-%d-%Y")
+df <- df[order(df$Ymd,decreasing = TRUE),]
+str(df)
+US <- subset(df,geoId =="US")
+str(US)
+no_us <- subset(df,geoId !="US")
+str(no_us)
+```
+```{r}
+worldCases <- aggregate(cases~Ymd,df,FUN=sum)
+worldDeaths <- aggregate(deaths~Ymd,df,FUN=sum)
+worldCases$cumCases <- cumsum(worldCases$cases)
+worldDeaths$cumdeaths <- cumsum(worldDeaths$deaths)
+
+no_Cases <- aggregate(cases~Ymd,no_us,FUN=sum)
+no_Deaths <- aggregate(deaths~Ymd,no_us,FUN=sum)
+
+```
+
+### Plot of Cumulative COID-19 Cases and Deaths for the World
+
+```{r}
+ggplot(worldCases,aes(x=Ymd,y=cumCases)) +
+  geom_line(col="red")  +
+  labs(title="World (incuding US) Cumulative Covid19 Cases")
+
+ggplot(worldDeaths,aes(x=Ymd,y=cumdeaths)) +
+  geom_line(col="red")  +
+  labs(title="World (incuding US) Cumulative Covid19 Deaths")
+```
+
+### Plot of Daily COID-19 Cases and Deaths for the World
+
+```{r}
+ggplot(worldCases,aes(x=Ymd,y=cases)) +
+  geom_line() + geom_smooth(aes(x=Ymd,y=cases),span=0.25) +
+  labs(title="World (incuding US) Daily Covid19 Cases")
+
+ggplot(worldDeaths,aes(x=Ymd,y=deaths)) +
+  geom_line() + geom_smooth(aes(x=Ymd,y=deaths),span=0.25) +
+  labs(title="World (incuding US) Daily Covid19 Deaths")
+```
+
+### Plot of Daily COID-19 Cases and Deaths for the World
+
+```{r}
+ggplot(no_Cases,aes(x=Ymd,y=cases)) +
+  geom_line()+
+  labs(title="World (without US) Daily Covid19 Cases") +
+  geom_smooth(aes(x=Ymd,y=cases),span=0.25) 
+  
+ggplot(no_Deaths,aes(x=Ymd,y=deaths)) +
+  geom_line()+
+  labs(title="World (without US) Daily Covid19 Cases") +
+  geom_smooth(aes(x=Ymd,y=deaths),span=0.25) 
+ 
+
+```
+
+### Plot of Combined with and with out US COID-19 Cases and Deaths for the World
+
+```{r}
+ggplot() + geom_line(data=worldCases,aes(x=Ymd,y=cases,col="World")) +
+  geom_line(data=no_Cases,aes(x=Ymd,y=cases,col="NO US")) + 
+  labs(title="Comparing WorldCases with and Without the US")
+
+ggplot() + geom_line(data=worldDeaths,aes(x=Ymd,y=deaths,col="World")) +
+  geom_line(data=no_Deaths,aes(x=Ymd,y=deaths,col="NO US")) + 
+  labs(title="Comparing World Deaths with and Without the US")
+```
+
+### Plot of Daily COID-19 Cases and Deaths for the US
+
+```{r}
+ggplot(US,aes(x=Ymd,y=cases)) +
+  geom_line()+
+  labs(title="US  Daily Covid19 Cases") +
+  geom_smooth(aes(x=Ymd,y=cases),span=0.25) 
+  
+ggplot(US,aes(x=Ymd,y=deaths)) +
+  geom_line()+
+  labs(title="US Daily Covid19 Deaths") +
+  geom_smooth(aes(x=Ymd,y=deaths),span=0.25) 
+```
+ 
